@@ -4,7 +4,7 @@ __pycache__/
 *.pyc
 .env
 
-# Node / Next.js
+# Node / Next.jscd 
 frontend/node_modules/
 frontend/.next/
 frontend/.env.local

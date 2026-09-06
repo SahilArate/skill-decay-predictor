@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import supabase
+from schemas import SkillCreate
 
 app = FastAPI()
 
@@ -21,4 +22,13 @@ def read_root():
 @app.get("/skills")
 def get_skills():
     response = supabase.table("skills").select("*").execute()
+    return response.data
+
+
+@app.post("/skills")
+def create_skill(skill: SkillCreate):
+    response = supabase.table("skills").insert({
+        "name": skill.name,
+        "category": skill.category,
+    }).execute()
     return response.data
