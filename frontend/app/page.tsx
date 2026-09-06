@@ -129,7 +129,7 @@ export default function Home() {
             <p className="font-semibold">{skill.name}</p>
             <p className="text-sm text-gray-500">{skill.category}</p>
             <p className="text-xs text-gray-400">{formatLastPracticed(skill.last_practiced_at)}</p>
-            <p className="text-xs font-medium mt-1">
+            <p className="text-xs font-medium mt-1 text-gray-900">
               Retention: {Math.round(skill.retention * 100)}%
             </p>
           </div>
