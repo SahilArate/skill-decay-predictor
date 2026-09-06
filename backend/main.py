@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import supabase
 from schemas import SkillCreate, PracticeEventCreate
+from decay import calculate_retention
 
 app = FastAPI()
 
@@ -51,3 +52,21 @@ def create_practice_event(event: PracticeEventCreate):
     }).eq("id", event.skill_id).execute()
 
     return event_response.data
+
+@app.get("/skills/decay-status")
+def get_skills_with_decay():
+    response = supabase.table("skills").select("*").execute()
+    skills = response.data
+
+    result = []
+    for skill in skills:
+        retention = calculate_retention(
+            skill["last_practiced_at"],
+            skill["stability"]
+        )
+        result.append({
+            **skill,
+            "retention": retention,
+        })
+
+    return result
