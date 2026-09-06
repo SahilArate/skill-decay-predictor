@@ -8,6 +8,7 @@ type Skill = {
   category: string;
   last_practiced_at: string | null;
   stability: number;
+  retention: number;
 };
 
 export default function Home() {
@@ -22,7 +23,7 @@ export default function Home() {
 
   const fetchSkills = () => {
     setLoading(true);
-    fetch("http://127.0.0.1:8000/skills")
+    fetch("http://127.0.0.1:8000/skills/decay-status")
       .then((res) => res.json())
       .then((data) => {
         setSkills(data);
@@ -81,6 +82,12 @@ export default function Home() {
     return `Last practiced: ${date.toLocaleDateString()}`;
   };
 
+  const getRetentionColor = (retention: number) => {
+  if (retention >= 0.7) return "bg-green-100 border-green-400";
+  if (retention >= 0.4) return "bg-yellow-100 border-yellow-400";
+  return "bg-red-100 border-red-400";
+ };
+
   if (loading) return <main className="p-8">Loading skills...</main>;
   if (error) return <main className="p-8 text-red-500">{error}</main>;
 
@@ -114,20 +121,26 @@ export default function Home() {
 
       <ul className="space-y-2">
         {skills.map((skill) => (
-          <li key={skill.id} className="border p-3 rounded flex justify-between items-center">
-            <div>
-              <p className="font-semibold">{skill.name}</p>
-              <p className="text-sm text-gray-500">{skill.category}</p>
-              <p className="text-xs text-gray-400">{formatLastPracticed(skill.last_practiced_at)}</p>
-            </div>
-            <button
-              onClick={() => handleMarkPracticed(skill.id)}
-              disabled={markingId === skill.id}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-            >
-              {markingId === skill.id ? "Marking..." : "Mark practiced"}
-            </button>
-          </li>
+          <li
+          key={skill.id}
+          className={`border p-3 rounded flex justify-between items-center ${getRetentionColor(skill.retention)}`}
+          >
+          <div>
+            <p className="font-semibold">{skill.name}</p>
+            <p className="text-sm text-gray-500">{skill.category}</p>
+            <p className="text-xs text-gray-400">{formatLastPracticed(skill.last_practiced_at)}</p>
+            <p className="text-xs font-medium mt-1">
+              Retention: {Math.round(skill.retention * 100)}%
+            </p>
+          </div>
+          <button
+            onClick={() => handleMarkPracticed(skill.id)}
+            disabled={markingId === skill.id}
+            className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+          >
+            {markingId === skill.id ? "Marking..." : "Mark practiced"}
+          </button>
+        </li>
         ))}
       </ul>
     </main>
