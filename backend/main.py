@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import supabase
-from schemas import SkillCreate
+from schemas import SkillCreate, PracticeEventCreate
 
 app = FastAPI()
 
@@ -32,3 +33,21 @@ def create_skill(skill: SkillCreate):
         "category": skill.category,
     }).execute()
     return response.data
+
+
+@app.post("/practice-events")
+def create_practice_event(event: PracticeEventCreate):
+    now = datetime.now(timezone.utc).isoformat()
+
+    event_response = supabase.table("practice_events").insert({
+        "skill_id": event.skill_id,
+        "source": event.source,
+        "practiced_at": now,
+        "intensity": event.intensity,
+    }).execute()
+
+    supabase.table("skills").update({
+        "last_practiced_at": now
+    }).eq("id", event.skill_id).execute()
+
+    return event_response.data
