@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+
 type Skill = {
   id: string;
   name: string;
@@ -20,6 +21,8 @@ export default function Home() {
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
 
   const fetchSkills = () => {
     setLoading(true);
@@ -60,6 +63,23 @@ export default function Home() {
     }
   };
 
+  const handleSyncGithub = async () => {
+  setSyncing(true);
+  setSyncMessage("");
+  try {
+    const res = await fetch("http://127.0.0.1:8000/sync-github", {
+      method: "POST",
+    });
+    const data = await res.json();
+    setSyncMessage(`Processed ${data.processed} commits`);
+    fetchSkills();
+  } catch {
+    setSyncMessage("Sync failed. Is the backend running?");
+  } finally {
+    setSyncing(false);
+  }
+  };
+
   const handleMarkPracticed = async (skillId: string) => {
     setMarkingId(skillId);
     try {
@@ -86,7 +106,7 @@ export default function Home() {
   if (retention >= 0.7) return "bg-green-100 border-green-400";
   if (retention >= 0.4) return "bg-yellow-100 border-yellow-400";
   return "bg-red-100 border-red-400";
- };
+  };
 
   if (loading) return <main className="p-8">Loading skills...</main>;
   if (error) return <main className="p-8 text-red-500">{error}</main>;
@@ -94,6 +114,16 @@ export default function Home() {
   return (
     <main className="p-8 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Your Skills</h1>
+      <div className="mb-4">
+  <button
+    onClick={handleSyncGithub}
+    disabled={syncing}
+    className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+  >
+    {syncing ? "Syncing..." : "Sync GitHub Commits"}
+  </button>
+  {syncMessage && <p className="text-sm text-gray-600 mt-1">{syncMessage}</p>}
+  </div>
 
       <form onSubmit={handleSubmit} className="mb-6 flex gap-2">
         <input
